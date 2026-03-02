@@ -100,11 +100,18 @@ $ErrorActionPreference = 'Stop'
 $pdfPigLoaded = $false
 $pdfPigAssemblyPath = $null
 
-# Try to find PdfPig in common NuGet locations.
-$nugetPaths = @(
-    "$env:USERPROFILE\.nuget\packages\uglytoad.pdfpig\*\lib\net*\UglyToad.PdfPig.dll",
-    "$PSScriptRoot\..\lib\UglyToad.PdfPig.dll",
-    "$PSScriptRoot\lib\UglyToad.PdfPig.dll"
+# Resolve user profile directory in a cross-platform way for NuGet lookup.
+$userProfile = [Environment]::GetFolderPath('UserProfile')
+if (-not $userProfile) { $userProfile = $HOME }
+
+# Try to find PdfPig in common NuGet and local locations.
+$nugetPaths = @()
+if ($userProfile) {
+    $nugetPaths += Join-Path $userProfile '.nuget' 'packages' 'uglytoad.pdfpig' '*' 'lib' 'net*' 'UglyToad.PdfPig.dll'
+}
+$nugetPaths += @(
+    (Join-Path $PSScriptRoot '..' 'lib' 'UglyToad.PdfPig.dll'),
+    (Join-Path $PSScriptRoot 'lib' 'UglyToad.PdfPig.dll')
 )
 
 foreach ($searchPath in $nugetPaths) {
@@ -151,42 +158,51 @@ function Get-PdfTextContent {
         return $null
     }
 
+    $document = $null
     try {
-        $document = [UglyToad.PdfPig.PdfDocument]::Open($FilePath)
-        
-        if ($null -eq $document) {
-            Write-Verbose "PdfPig returned null document for $FilePath"
-            return $null
-        }
+        try {
+            $document = [UglyToad.PdfPig.PdfDocument]::Open($FilePath)
 
-        $textBuilder = [System.Text.StringBuilder]::new()
-        foreach ($page in $document.GetPages()) {
-            if ($null -ne $page.Text) {
-                $textBuilder.Append($page.Text) | Out-Null
+            if ($null -eq $document) {
+                Write-Verbose "PdfPig returned null document for $FilePath"
+                return $null
+            }
+
+            $textBuilder = [System.Text.StringBuilder]::new()
+            foreach ($page in $document.GetPages()) {
+                if ($null -ne $page.Text) {
+                    $textBuilder.Append($page.Text) | Out-Null
+                    if ($textBuilder.Length -ge 8000) {
+                        break
+                    }
+                }
+            }
+
+            $extractedText = $textBuilder.ToString()
+            if ([string]::IsNullOrWhiteSpace($extractedText)) {
+                Write-Verbose "No text extracted from PDF: $FilePath"
+                return $null
+            }
+
+            # Truncate to 8000 characters to match existing limit.
+            if ($extractedText.Length -gt 8000) {
+                $extractedText = $extractedText.Substring(0, 8000)
+            }
+
+            Write-Verbose "Extracted $($extractedText.Length) characters from PDF: $FilePath"
+            return $extractedText
+        }
+        finally {
+            if ($null -ne $document) {
+                $document.Dispose()
             }
         }
-
-        $document.Dispose()
-
-        $extractedText = $textBuilder.ToString()
-        if ([string]::IsNullOrWhiteSpace($extractedText)) {
-            Write-Verbose "No text extracted from PDF: $FilePath"
-            return $null
-        }
-
-        # Truncate to 8000 characters to match existing limit.
-        if ($extractedText.Length -gt 8000) {
-            $extractedText = $extractedText.Substring(0, 8000)
-        }
-
-        Write-Verbose "Extracted $($extractedText.Length) characters from PDF: $FilePath"
-        return $extractedText
     }
     catch {
         # Distinguish between dependency/installation errors vs. PDF content errors.
         if ($_.Exception.Message -match "Could not load file or assembly") {
-            Write-Error "Missing PdfPig dependency for $FilePath : Run '.\scripts\Install-Dependencies.ps1' to install all required libraries. Error: $_"
-            throw  # Stop script execution on dependency errors.
+            Write-Warning "Missing PdfPig dependency for $FilePath : Run '.\scripts\Install-Dependencies.ps1' to install all required libraries. Error: $_"
+            return $null
         }
         else {
             # PDF content error (scanned, encrypted, corrupted, etc).
@@ -198,8 +214,9 @@ function Get-PdfTextContent {
 
 # ---------------------------------------------------------------------------
 # Helper: Read file content as plain text, with PDF support.
-# Returns a string (content or placeholder), never $null.
-# Returns $null only if the file type is unsupported.
+# Returns the file content as text when successful.
+# May return $null if the file type is unsupported or the file cannot be read
+# (including PDF extraction failures or missing PdfPig).
 # ---------------------------------------------------------------------------
 function Get-FileTextContent {
     [CmdletBinding()]
@@ -284,10 +301,7 @@ function Invoke-AzureOpenAIFilenameProposal {
         [int]$MaxPromptCharacters = 1200,
 
         [Parameter()]
-        [int]$MaxRetries = 3,
-
-        [Parameter()]
-        [int]$InitialDelaySeconds = 2
+        [int]$MaxRetries = 3
     )
 
     $systemPrompt = @'
@@ -390,7 +404,7 @@ Examples of good output:
                     $jitter = (Get-Random -Minimum -0.25 -Maximum 0.25) * $retryAfterSeconds
                     $actualDelay = [Math]::Max(1, [Math]::Ceiling($retryAfterSeconds + $jitter))
 
-                    Write-Verbose "Rate limit hit for '$OriginalFileName'. Waiting ${actualDelay}s before retry (attempt $($retryCount + 1)/$MaxRetries)..."
+                    Write-Verbose "Rate limit hit for '$OriginalFileName'. Waiting ${actualDelay}s before retry $($retryCount + 1) of $MaxRetries..."
                     Start-Sleep -Seconds $actualDelay
                     $retryCount++
                     continue

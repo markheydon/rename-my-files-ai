@@ -68,7 +68,11 @@ Found 6 file(s). Processing...
 
  Skip breakdown:
    - Already descriptive : 2
-   - Unsupported         : 1
+
+ Skipped files:
+   * Invoice - 2025-02-15.pdf -- Already descriptive
+   * Tax Return 2024.xlsx -- Already descriptive
+   * photo.jpg -- Unsupported or unreadable file type
 -------------------------------------
 ```
 

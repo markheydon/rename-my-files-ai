@@ -30,7 +30,7 @@ This plan breaks work into small, testable tasks. Update it when the code change
   - Uses Azure CLI (`az`) for safe resource group deletion.
   - Prompts for confirmation; supports `–Force` flag.
 - All documentation (README, user guide, runbook) updated to reflect current behaviour and limitations.
-- Architecture decisions documented in `DECISIONS/` (ADR-0001 through ADR-0005).
+- Architecture decisions documented in `DECISIONS/` (ADR-0001 through ADR-0006).
 
 ### Known Limitations (Current Implementation)
 
@@ -228,12 +228,12 @@ This plan breaks work into small, testable tasks. Update it when the code change
   - [x] Added PdfPig assembly loading at script startup (lines 78–113).
   - [x] Extract up to 8000 characters (existing limit maintained).
   - [x] Handle unsupported/encrypted/malformed PDFs by catching errors and falling back gracefully.
-  - [x] Return extracted text or placeholder, never throw.
+  - [x] Return extracted text or $null on failure; never throws (dependency errors logged as warnings, file is skipped).
 - [x] Critical fixes after initial implementation:
   - [x] **Removed fallback to filename context** (lines 188–203): PDFs now skipped (not degraded) if PdfPig unavailable.
   - [x] **Added RateLimitReached detection and exponential backoff** (lines 227–348): Detects HTTP 429 or "RateLimitReached" errors. Retries up to 3 times with exponential backoff. Provides explicit warning.
   - [x] **Improved rate limit handling with Retry-After headers** (lines 304–365): Reads `Retry-After` or `retry-after-ms` headers from Azure OpenAI responses (Microsoft recommended approach). Adds jitter (±25% random variation) to avoid thundering herd. Falls back to exponential backoff if headers unavailable. Better error messages distinguishing TPM vs RPM limits.
-  - [x] **Added request throttling/pacing** (new parameter `RequestThrottleSeconds`, default 1s): Adds configurable delay between API calls to avoid bursting into Token-Per-Minute (TPM) limits. Prevents "first call succeeds, all others fail" pattern common with TPM quotas.
+  - [x] **Added request throttling/pacing** (new parameter `RequestThrottleSeconds`, default 5s): Adds configurable delay between API calls to avoid bursting into Token-Per-Minute (TPM) limits. Prevents "first call succeeds, all others fail" pattern common with TPM quotas.
   - [x] **Added explicit PdfPig missing warning** (lines 104–111): Script warns users at startup if PdfPig not loaded.
   - [x] **Created Install-Dependencies.ps1 script**: Automates PdfPig installation. Fixed package name (PdfPig vs UglyToad.PdfPig), API version (v2 vs v3), and version (0.1.13).
   - [x] **Fixed Install-Dependencies.ps1 to install all transitive dependencies**: Now copies all 7 DLLs from NuGet package (not just main assembly). Fixed Split-Path parameter compatibility. Added file-locking error handling.

@@ -94,7 +94,7 @@ try {
     $sourceDir = Split-Path $dllSource
     
     try {
-        $dlls = @(Get-ChildItem "$sourceDir\*.dll")
+        $dlls = @(Get-ChildItem -Path $sourceDir -Filter '*.dll' -ErrorAction Stop)
     }
     catch {
         throw "Failed to enumerate DLLs in $sourceDir : $_"

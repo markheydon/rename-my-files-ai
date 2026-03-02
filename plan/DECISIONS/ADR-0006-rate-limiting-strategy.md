@@ -1,4 +1,4 @@
-# ADR-0005: Rate Limiting Strategy for Azure OpenAI
+# ADR-0006: Rate Limiting Strategy for Azure OpenAI
 
 ## Status
 Accepted
