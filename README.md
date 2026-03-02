@@ -20,6 +20,7 @@ Rename My Files is a PowerShell tool that reads file content and uses Azure Open
 3. Sends minimal context to Azure OpenAI.
 4. Renames each file while keeping its original extension.
 
+
 Example result:
 
 ```
@@ -32,6 +33,7 @@ scan0042.pdf  ->  Acme Ltd Contract Renewal Notice - 13th January 2026.pdf
 - Azure subscription
 - Azure CLI
 - Permission to create resources in the target subscription
+- (Optional) UglyToad.PdfPig NuGet package for PDF text extraction (see below)
 
 ## Quick start
 
@@ -57,6 +59,29 @@ Run for real:
 .\scripts\Rename-MyFiles.ps1 -FolderPath "C:\MyDocuments\Unfiled"
 ```
 
+This command uses built-in low-cost defaults automatically (no AI tuning parameters required).
+
+## Optional: Install PdfPig for PDF text extraction
+
+PDF text extraction requires the PdfPig (.NET library).
+
+To install it:
+
+```powershell
+.\scripts\Install-Dependencies.ps1
+```
+
+This downloads PdfPig from NuGet.org and installs it to a local `lib` folder. **No .NET SDK required** — only PowerShell 7.2+ and an internet connection.
+
+**If PdfPig is not installed:** PDF files will be skipped with a clear warning message explaining how to install it. Run the install script, then run the rename script again.
+
+**To check if PdfPig is available:** Run the rename script with `-Verbose`:
+```powershell
+.\scripts\Rename-MyFiles.ps1 -FolderPath "C:\Documents" -Verbose
+```
+
+If PdfPig is loaded, you will see: `"Successfully loaded PdfPig from: ..."`
+
 ## Parameters (`Rename-MyFiles.ps1`)
 
 | Parameter | Required | Description |
@@ -65,19 +90,25 @@ Run for real:
 | `-AzureOpenAIEndpoint` | No | Azure OpenAI endpoint (or `AZURE_OPENAI_ENDPOINT`) |
 | `-AzureOpenAIKey` | No | Azure OpenAI API key (or `AZURE_OPENAI_KEY`) |
 | `-DeploymentName` | No | Model deployment name (default `gpt-4o-mini`) |
+| `-RequestThrottleSeconds` | No | Delay between API calls (default is conservative for low quota/cost) |
+| `-MaxPromptCharacters` | No | Max content sent per file (default is low-cost) |
 | `-WhatIf` | No | Preview renames without changing files |
 | `-Verbose` | No | Show detailed progress |
 
+
 ## Current behaviour and limits
 
-- Plain text formats are read directly (`.txt`, `.md`, `.csv`, `.log`, `.json`, `.xml`, `.html`, `.htm`, `.yaml`, `.yml`).
-- PDF and Office formats currently use filename context only (no text extraction).
-- Unsupported or unreadable files are skipped.
-- Name collisions are handled with numeric suffixes (`-1`, `-2`, ...).
-- Invalid filename characters and control characters are removed.
-- Repeated whitespace is collapsed.
-- Windows reserved names are made safe by appending `_file`.
-- Overlong filenames are truncated to fit Windows filename limits.
+- **Plain text formats:** Content is read directly (`.txt`, `.md`, `.csv`, `.log`, `.json`, `.xml`, `.html`, `.htm`, `.yaml`, `.yml`).
+- **PDF files:** Text content is extracted and used for naming (requires PdfPig library). If PdfPig is not installed, PDF files are skipped.
+- **Scanned PDFs:** Skipped (image-based, no text to extract).
+- **Password-protected PDFs:** Skipped (decryption not supported).
+- **Office formats:** *Content is not read.* The tool uses only the original filename (e.g. `.docx`, `.xlsx`, `.pptx`). Names may be generic if the filename is not descriptive.
+- **Unsupported or unreadable files:** Skipped automatically.
+- **Name collisions:** Handled with numeric suffixes (`-1`, `-2`, ...).
+- **Invalid filename characters and control characters:** Removed.
+- **Repeated whitespace:** Collapsed.
+- **Windows reserved names:** Made safe by appending `_file`.
+- **Overlong filenames:** Truncated to fit Windows filename limits.
 
 ## Remove resources
 

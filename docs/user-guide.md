@@ -146,8 +146,11 @@ Found 8 file(s). Processing...
 | Situation | What happens |
 |-----------|-------------|
 | Image files (`.jpg`, `.png`, etc.) | Skipped — the tool only reads text content |
-| PDF or Office documents | Limited — the tool currently uses filename context only, so names may be generic |
-| Encrypted or password-protected PDF/Office files | Processed using filename context only (text extraction is not implemented) |
+| PDF files with text content (PdfPig installed) | Supported — text is extracted and used for naming |
+| PDF files (PdfPig not installed) | Skipped with a message explaining how to install PdfPig |
+| Scanned PDF files (image-based) | Skipped — no text to extract |
+| Password-protected or encrypted PDF files | Skipped — decryption not supported |
+| Office documents (`.docx`, `.xlsx`, `.pptx`, etc.) | Limited — the tool currently uses filename context only, so names may be generic |
 | Corrupted or unreadable plain-text files | Skipped — the file cannot be read |
 | Very short or empty files | The AI may produce a generic or imperfect name |
 | File with the same proposed name already exists | A numeric suffix is added (e.g. `-1`, `-2`) |
@@ -155,11 +158,41 @@ Found 8 file(s). Processing...
 | Proposed filename contains control characters, tabs, or newlines | These characters are removed entirely |
 | Proposed filename matches a Windows reserved device name (e.g. CON, PRN, NUL, COM1) | Name is made safe by appending _file |
 | Excess spaces | Multiple spaces are collapsed to a single space |
+| Azure API rate limit exceeded | File is skipped. Script retries automatically and already uses low-cost defaults (conservative pacing + reduced prompt size). If this still happens, wait a few minutes and try again, or increase Azure OpenAI quota. |
 
 - **AI names are suggestions.** The AI does its best but may occasionally produce imperfect names. Review the dry-run output before renaming important files.
 - **Only the filename changes.** The tool never modifies the content of any file.
 - **Only files in the top-level folder are processed.** Sub-folders are not scanned.
 - **The summary reports renamed and skipped files.** Any file-level failure is recorded as skipped with a reason.
+
+### Enabling PDF text extraction
+
+PDF text extraction requires the PdfPig library. To enable it:
+
+1. Open a PowerShell 7 terminal.
+2. Navigate to the folder where you have the Rename My Files scripts.
+3. Run the installation script:
+   ```powershell
+   .\scripts\Install-Dependencies.ps1
+   ```
+4. The script will download PdfPig from NuGet.org and install it automatically.
+5. Run the rename script:
+   ```powershell
+   .\scripts\Rename-MyFiles.ps1 -FolderPath "C:\Documents\MyFolder"
+   ```
+
+**What happens if PdfPig is not installed?**
+- PDF files are skipped with a clear `⚠️ WARNING` message at the start of the script.
+- The message tells you exactly how to install it (run `Install-Dependencies.ps1`).
+- Once you install PdfPig, run the rename script again — no configuration needed.
+
+**Verify PdfPig is loaded:** Run the rename script with `-Verbose`:
+```powershell
+.\scripts\Rename-MyFiles.ps1 -FolderPath "C:\Documents\MyFolder" -Verbose
+```
+Look for: `"Successfully loaded PdfPig from: ..."` in the output.
+
+**Requirements:** PowerShell 7.2+ and an internet connection. No .NET SDK required.
 
 ---
 

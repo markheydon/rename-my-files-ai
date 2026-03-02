@@ -35,8 +35,8 @@ Your files stay in the same folder — only their names change.
 
 ## Limitations
 
-- Only plain text files (`.txt`, `.md`, `.csv`, etc.) are fully supported out of the box.
-- PDF and Office documents have limited support (the tool currently uses filename context only).
+- Plain text files (`.txt`, `.md`, `.csv`, etc.) and PDF files with PdfPig installed are fully supported.
+- Scanned PDFs, encrypted PDFs, and Office documents have limited/no support and will be skipped.
 - Unsupported or unreadable files are skipped.
 - AI-generated names are suggestions — they may not always be perfect.
 - Only files in the selected folder are processed (subfolders are not scanned).

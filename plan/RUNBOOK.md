@@ -64,7 +64,11 @@ This repository is organised as follows:
 
 **Problem:** Deployment fails with error `FlagMustBeSetForRestore` — a previously deleted Azure OpenAI resource is soft-deleted and blocking redeployment.
 
-**Default Behaviour:** The Bicep template includes `restore: true`, which automatically restores soft-deleted resources during redeployment. This handles most redeploy scenarios seamlessly.
+**Default Behaviour:** Deployment now runs in two steps automatically:
+1. Tries normal deployment with `restoreOpenAI=false` (works for active resources and normal redeploys).
+2. If Azure returns `FlagMustBeSetForRestore`, retries with `restoreOpenAI=true` to restore the soft-deleted resource.
+
+This avoids `CanNotRestoreAnActiveResource` on active resources while still handling soft-deleted resources without manual intervention.
 
 **Manual Purge (Edge Cases):** If you need to completely purge the soft-deleted resource (e.g., changing location or starting fresh), run:
 

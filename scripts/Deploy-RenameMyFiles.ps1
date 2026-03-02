@@ -128,19 +128,57 @@ if ($PSCmdlet.ShouldProcess($ResourceGroupName, 'Deploy Bicep template')) {
 
     $deploymentName = "rename-my-files-$(Get-Date -Format 'yyyyMMddHHmmss')"
 
-    try {
-        $deploymentJson = az deployment group create `
+    function Invoke-RmfDeployment {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory)]
+            [bool]$RestoreOpenAI
+        )
+
+        $restoreValue = if ($RestoreOpenAI) { 'true' } else { 'false' }
+
+        $result = az deployment group create `
             --name $deploymentName `
             --resource-group $ResourceGroupName `
             --template-file $bicepTemplatePath `
-            --parameters location=$Location `
-            --output json
-        
-        if ($LASTEXITCODE -ne 0) {
-            throw "Deployment command failed with exit code $LASTEXITCODE"
+            --parameters location=$Location restoreOpenAI=$restoreValue `
+            --only-show-errors `
+            --output json 2>&1
+
+        return [PSCustomObject]@{
+            ExitCode = $LASTEXITCODE
+            Output   = ($result | Out-String)
         }
-        
-        $deployment = $deploymentJson | ConvertFrom-Json
+    }
+
+    try {
+        # First attempt: normal deployment (active resources should not use restore=true).
+        $deployResult = Invoke-RmfDeployment -RestoreOpenAI $false
+
+        # Retry only when Azure reports a soft-deleted resource that requires restore.
+        if ($deployResult.ExitCode -ne 0 -and $deployResult.Output -match 'FlagMustBeSetForRestore') {
+            Write-Warning 'Soft-deleted Azure OpenAI resource detected. Retrying deployment with restore enabled...'
+            $deployResult = Invoke-RmfDeployment -RestoreOpenAI $true
+        }
+
+        if ($deployResult.ExitCode -ne 0) {
+            throw "Deployment command failed. Azure CLI output: $($deployResult.Output.Trim())"
+        }
+
+        $deploymentJson = $deployResult.Output
+
+        # Azure CLI can occasionally prepend warning text to output; keep only JSON lines.
+        $jsonLines = $deploymentJson -split [Environment]::NewLine | Where-Object {
+            $_ -and $_.Trim() -ne '' -and $_ -notmatch '^\s*WARNING:'
+        }
+        $cleanJson = ($jsonLines -join [Environment]::NewLine).Trim()
+
+        try {
+            $deployment = $cleanJson | ConvertFrom-Json
+        }
+        catch {
+            throw "Failed to parse deployment JSON output. Raw Azure CLI output: $deploymentJson"
+        }
 
         if ($deployment.properties.provisioningState -ne 'Succeeded') {
             throw "Deployment finished with state: $($deployment.properties.provisioningState)"

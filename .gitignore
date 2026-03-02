@@ -8,3 +8,6 @@ powershell.log
 
 # Bicep build output (which we don't want)
 infra/main.json
+
+# Script DLL dependencies (which we don't want)
+scripts/lib/

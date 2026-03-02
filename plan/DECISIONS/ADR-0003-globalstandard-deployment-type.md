@@ -152,13 +152,13 @@ resource cognitiveServicesDeployment 'Microsoft.CognitiveServices/accounts/deplo
     }
     scaleSettings: {
       scaleType: 'Standard'
-      capacity: 1
+      capacity: 10
     }
     versionUpgradeOption: 'OnceCurrentVersionExpired'
   }
   sku: {
     name: 'GlobalStandard'  // ← This is the critical setting
-    capacity: 1
+    capacity: 10
   }
 }
 ```

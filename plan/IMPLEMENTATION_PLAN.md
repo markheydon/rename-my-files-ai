@@ -201,35 +201,56 @@ This plan breaks work into small, testable tasks. Update it when the code change
 **Priority:** High (most common document type after plain text)
 
 #### Task: Research & Select PDF Extraction Method
-- [ ] Investigate PDF extraction options:
+- [x] Investigate PDF extraction options:
   - **PdfPig** (.NET library, approx. 500 KB, MIT licensed, cross-platform via .NET Core/Framework).
   - **pdftotext** (external utility, requires installation and PATH setup).
   - **iTextSharp** (.NET library, commercial license considerations).
   - **Azure Document Intelligence** (cloud service, costs per page, adds dependency).
-- [ ] Evaluation criteria:
+- [x] Evaluation criteria:
   - Cross-platform support (Windows, macOS, Linux).
   - Cross-platform installation ease (NuGet package preferred over external utilities).
   - Licensing (no proprietary/expensive licenses).
   - Error handling (malformed/encrypted PDFs fall back gracefully).
   - Size (minimal impact on script distribution).
-- [ ] Document recommendation and rationale in [DECISIONS/ADR-000X-pdf-extraction.md](DECISIONS/) (future ADR).
+- [x] Document recommendation and rationale in [DECISIONS/ADR-0005-pdf-text-extraction.md](DECISIONS/ADR-0005-pdf-text-extraction.md).
+  - **Recommended Method:** PdfPig (UglyToad.PdfPig)
+  - **Rationale:** MIT license, no external dependencies, cross-platform, robust error handling, minimal footprint.
+  - **Not Recommended:** pdftotext (installation friction), iTextSharp (licensing risk), Azure Document Intelligence (cost + privacy concerns).
 
 #### Task: Implement PDF Text Extraction
-- [ ] Modify `Get-FileTextContent` function in [scripts/Rename-MyFiles.ps1](scripts/Rename-MyFiles.ps1) (lines 93–101).
-  - Replace placeholder logic returning `[PDF file: <filename>]` with real extraction.
-  - Extract up to 8000 characters (existing limit).
-  - Handle unsupported/encrypted/malformed PDFs by catching errors and falling back to filename context.
-  - Return extracted text or placeholder, never throw.
-- [ ] Add new prerequisite documentation (if library requires installation).
-  - Specify exact NuGet package version or external utility version.
-  - Document installation steps for Windows, macOS, and Linux.
-- [ ] Test with realistic PDF samples:
-  - Text-based PDF (e.g., Office document exported to PDF).
-  - Scanned PDF (image-based, text extraction may fail — fallback to context).
-  - Encrypted/password-protected PDF (decryption not required; fallback to context).
-  - Malformed/corrupted PDF (invalid header; fallback to context).
-- [ ] Update user-guide.md to list PDF extraction under supported file types.
-  - Note any limitations (e.g., scanned PDFs, encrypted PDFs use context).
+- [x] Modify `Get-FileTextContent` function in [scripts/Rename-MyFiles.ps1](scripts/Rename-MyFiles.ps1).
+  - [x] Replaced placeholder logic with real PDF text extraction using PdfPig.
+  - [x] Implemented `Get-PdfTextContent` helper function (lines 110–168).
+  - [x] Added PdfPig assembly loading at script startup (lines 78–113).
+  - [x] Extract up to 8000 characters (existing limit maintained).
+  - [x] Handle unsupported/encrypted/malformed PDFs by catching errors and falling back gracefully.
+  - [x] Return extracted text or placeholder, never throw.
+- [x] Critical fixes after initial implementation:
+  - [x] **Removed fallback to filename context** (lines 188–203): PDFs now skipped (not degraded) if PdfPig unavailable.
+  - [x] **Added RateLimitReached detection and exponential backoff** (lines 227–348): Detects HTTP 429 or "RateLimitReached" errors. Retries up to 3 times with exponential backoff. Provides explicit warning.
+  - [x] **Improved rate limit handling with Retry-After headers** (lines 304–365): Reads `Retry-After` or `retry-after-ms` headers from Azure OpenAI responses (Microsoft recommended approach). Adds jitter (±25% random variation) to avoid thundering herd. Falls back to exponential backoff if headers unavailable. Better error messages distinguishing TPM vs RPM limits.
+  - [x] **Added request throttling/pacing** (new parameter `RequestThrottleSeconds`, default 1s): Adds configurable delay between API calls to avoid bursting into Token-Per-Minute (TPM) limits. Prevents "first call succeeds, all others fail" pattern common with TPM quotas.
+  - [x] **Added explicit PdfPig missing warning** (lines 104–111): Script warns users at startup if PdfPig not loaded.
+  - [x] **Created Install-Dependencies.ps1 script**: Automates PdfPig installation. Fixed package name (PdfPig vs UglyToad.PdfPig), API version (v2 vs v3), and version (0.1.13).
+  - [x] **Fixed Install-Dependencies.ps1 to install all transitive dependencies**: Now copies all 7 DLLs from NuGet package (not just main assembly). Fixed Split-Path parameter compatibility. Added file-locking error handling.
+  - [x] **Fixed PdfPig API usage**: Changed from `.Pages` property to `.GetPages()` method (correct API for v0.1.13).
+  - [x] **Fixed error reporting**: Dependency loading errors now throw with installation instructions instead of silently failing as "corrupted PDF".
+- [x] Add new prerequisite documentation.
+  - [x] Updated README.md with PdfPig optional dependency (UglyToad.PdfPig).
+  - [x] Added "Optional: Install PdfPig for PDF text extraction" section to README.md with clear consequences.
+  - [x] Updated prerequisites list with optional PdfPig package.
+- [x] Test with realistic PDF samples (manual validation).
+  - [x] Text-based PDF: extraction works; returns null on parsing errors.
+  - [x] Scanned PDF: returns null; file skipped (not degraded to filename).
+  - [x] Encrypted/password-protected PDF: parsing error caught; file skipped.
+  - [x] Malformed/corrupted PDF: parsing error caught; file skipped.
+  - [x] RateLimitReached error: detected, retried with backoff, explicitly reported if persistent.
+  - [x] Error handling ensures no file halts batch processing.
+- [x] Update user-guide.md and index.md to reflect PDF extraction support with caveats.
+  - [x] Updated "Limitations and Caveats" table in user-guide.md (clearer rows for PDF states).
+  - [x] Added Azure API rate limit row to limitations table with guidance.
+  - [x] Updated "Enabling PDF text extraction" section with PdfPig installation and consequence documentation.
+  - [x] Updated docs/index.md limitations section to accurately reflect PDF text support.
 
 ### Phase 6b - Office Document Text Extraction
 
