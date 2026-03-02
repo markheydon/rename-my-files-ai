@@ -105,28 +105,27 @@ This will show you proposed renames **without actually changing anything**. Revi
 
 ---
 
-## Smart Skip (Saving Cost and Quota)
+## Existing-name handling
 
-The tool automatically **skips files that already have good names** to save cost and quota. Files with dates and business keywords (like "Invoice", "Contract", "Tax Return") are considered already descriptive and are skipped without calling Azure AI.
+The tool sends the current filename and document content to Azure AI. If the current filename is already clear and useful, Azure AI can return it unchanged.
 
 ### Example Skip Reasons
 
 | File | Reason | Called AI? |
 |------|--------|-----------|
-| `Invoice - 2025-02-15.pdf` | Already descriptive | ❌ No |
-| `scan0042.pdf` | No, needs AI | ✅ Yes |
-| `Dr Smith Letter - 15 Feb 2025.txt` | Already descriptive | ❌ No |
-| `Document (3).docx` | No, needs AI | ✅ Yes |
+| `Invoice - 2025-02-15.pdf` | Filename unchanged | ✅ Yes |
+| `scan0042.pdf` | Renamed | ✅ Yes |
+| `Document (3).docx` | Renamed | ✅ Yes |
 
 ### Force Rename Everything
 
-If you want to rename **all** files regardless of their current names, use `-Force`:
+If you want Azure AI to always suggest a new name, use `-Force`:
 
 ```powershell
 .\scripts\Rename-MyFiles.ps1 -FolderPath "C:\Documents\MyUnfiledFolder" -Force
 ```
 
-This tells the tool to process every file, even if it already looks descriptive. Useful if you want consistent naming across your entire collection.
+This tells the tool to ask Azure AI for an improved name even when the current filename already looks good. Useful if you want stricter naming consistency across your collection.
 
 ---
 
@@ -139,8 +138,7 @@ Once you are happy with the preview:
 ```
 
 The script will:
-- Check which files already have good names (skip them to save cost).
-- Read each file that might need renaming.
+- Read each supported file.
 - Ask Azure AI to suggest a descriptive name.
 - Rename the file, keeping the same extension.
 - Show a summary at the end.
@@ -151,7 +149,7 @@ Example output:
 Scanning folder: C:\Documents\MyUnfiledFolder
 Found 8 file(s). Processing...
 
-   SKIPPED  Invoice - 2025-02-15.pdf -- already descriptive
+   SKIPPED  Invoice - 2025-02-15.pdf -- filename unchanged
    RENAMED  scan0042.pdf  ->  Acme Ltd Invoice - January 2025.pdf
    RENAMED  Document (3).docx  ->  HMRC Self Assessment Tax Return 2024-25.docx
    SKIPPED  photo.jpg -- Unsupported or unreadable file type
@@ -165,8 +163,7 @@ Found 8 file(s). Processing...
  Files skipped    : 5
 
  Skip breakdown:
-   - Already descriptive : 1
-   - Unsupported         : 1
+   - Filename unchanged   : 1
 -------------------------------------
 ```
 

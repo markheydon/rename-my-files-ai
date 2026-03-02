@@ -35,7 +35,7 @@
 
 .PARAMETER Force
     Force rename even if the current filename already appears descriptive.
-    By default, files with good names (containing dates and business keywords) are skipped to save cost.
+    By default, Azure AI may keep the existing filename unchanged when it is already clear and useful.
 
 .PARAMETER WhatIf
     Shows what files would be renamed without actually renaming them.
@@ -133,7 +133,7 @@ foreach ($searchPath in $nugetPaths) {
 
 if (-not $pdfPigLoaded) {
     Write-Warning @"
-⚠️  PdfPig library not found. PDF files will be SKIPPED.
+WARNING: PdfPig library not found. PDF files will be SKIPPED.
 
 To enable PDF support, run the installation script:
     .\scripts\Install-Dependencies.ps1
@@ -297,6 +297,9 @@ function Invoke-AzureOpenAIFilenameProposal {
         [string]$DeploymentName,
 
         [Parameter()]
+        [switch]$AlwaysSuggestNewName,
+
+        [Parameter()]
         [ValidateRange(400, 8000)]
         [int]$MaxPromptCharacters = 1200,
 
@@ -304,7 +307,14 @@ function Invoke-AzureOpenAIFilenameProposal {
         [int]$MaxRetries = 3
     )
 
-    $systemPrompt = @'
+    $filenamePolicy = if ($AlwaysSuggestNewName) {
+        '- Even if the current filename is already good, suggest a better descriptive filename.'
+    }
+    else {
+        '- If the current filename is already clear, specific, and useful, return it unchanged (without extension).'
+    }
+
+    $systemPrompt = @"
 You are a file-naming assistant. Your only job is to propose a clear, descriptive, human-readable
 filename for a document based on its content.
 
@@ -316,6 +326,7 @@ Rules:
 - Keep the name concise but descriptive (aim for under 80 characters).
 - Avoid special characters that are invalid on Windows filesystems: \ / : * ? " < > |
 - If you cannot reliably determine specific details, still propose the best descriptive name you can.
+$filenamePolicy
 - Respond with ONLY the proposed filename -- no explanation, no punctuation at the end.
 
 Examples of good output:
@@ -323,7 +334,7 @@ Examples of good output:
   HMRC Self Assessment Tax Return 2024-25
   Dr Smith Referral Letter - Patient John Doe
   Electricity Bill - March 2025
-'@
+"@
 
     $userPrompt = "Original filename: $OriginalFileName`n`nDocument content:`n$FileContent"
 
@@ -400,7 +411,7 @@ Examples of good output:
                         Write-Verbose "Using server-provided Retry-After: ${retryAfterSeconds}s"
                     }
 
-                    # Add jitter (±25% random variation to avoid thundering herd).
+                    # Add jitter (+/-25% random variation to avoid thundering herd).
                     $jitter = (Get-Random -Minimum -0.25 -Maximum 0.25) * $retryAfterSeconds
                     $actualDelay = [Math]::Max(1, [Math]::Ceiling($retryAfterSeconds + $jitter))
 
@@ -511,57 +522,6 @@ function Resolve-UniqueFilePath {
 }
 
 # ---------------------------------------------------------------------------
-# Helper: Detect if a filename appears to already be descriptive.
-# Returns $true if filename contains date patterns AND business keywords,
-# suggesting it's already a good name and doesn't need renaming.
-# ---------------------------------------------------------------------------
-function Test-FilenameIsDescriptive {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory)]
-        [string]$FileName
-    )
-
-    # Remove extension for analysis.
-    $nameWithoutExt = [System.IO.Path]::GetFileNameWithoutExtension($FileName)
-
-    # Business keywords indicating a file likely has good structure.
-    $businessKeywords = @(
-        'invoice', 'receipt', 'statement', 'letter', 'report', 'agreement',
-        'contract', 'proposal', 'quote', 'order', 'payment', 'tax', 'return',
-        'refund', 'certification', 'license', 'policy', 'procedure', 'manual',
-        'specification', 'estimate', 'schedule', 'summary', 'analysis', 'plan',
-        'budget', 'forecast', 'audit', 'assessment', 'checklist', 'form',
-        'application', 'renewal', 'confirmation', 'notification', 'appointment',
-        'fee', 'charge', 'bill'
-    )
-
-    # Check for date patterns (case-insensitive).
-    $hasDate = ($nameWithoutExt -match '\d{4}-\d{2}-\d{2}') -or  # YYYY-MM-DD
-               ($nameWithoutExt -match '\d{1,2}/\d{1,2}/\d{2,4}') -or  # MM/DD/YYYY or DD/MM/YYYY
-               ($nameWithoutExt -match '(?i)(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}') -or  # Month YYYY
-               ($nameWithoutExt -match '(?i)(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}') -or  # Mon YYYY
-               ($nameWithoutExt -match '\b(20|19)\d{2}\b')  # 4-digit year
-
-    if (-not $hasDate) {
-        Write-Verbose "Test-FilenameIsDescriptive: '$FileName' has no date pattern. Not descriptive."
-        return $false  # No date = likely not descriptive enough.
-    }
-
-    # Check for business keywords (case-insensitive).
-    foreach ($keyword in $businessKeywords) {
-        if ($nameWithoutExt -match "(?i)\b$keyword\b") {
-            Write-Verbose "Test-FilenameIsDescriptive: '$FileName' has date + keyword '$keyword'. Descriptive."
-            return $true  # One keyword + date is a good sign.
-        }
-    }
-
-    # Date present but no keywords; consider format-only names like "scan0042" or "Document (3)" as NOT descriptive.
-    Write-Verbose "Test-FilenameIsDescriptive: '$FileName' has date but no business keywords. Not descriptive."
-    return $false
-}
-
-# ---------------------------------------------------------------------------
 # Main processing
 # ---------------------------------------------------------------------------
 
@@ -588,20 +548,10 @@ Write-Output "Found $($files.Count) file(s). Processing..."
 $countRenamed  = 0
 $countSkipped  = 0
 $countUnchanged = 0
-$countDescriptive = 0
 $skippedFiles  = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 foreach ($file in $files) {
     Write-Verbose "Processing: $($file.Name)"
-
-    # Step 0: Check if current filename is already descriptive (and user didn't force).
-    if (-not $Force -and (Test-FilenameIsDescriptive -FileName $file.Name)) {
-        Write-Output "  SKIPPED  $($file.Name) -- already descriptive"
-        $skippedFiles.Add([PSCustomObject]@{ Name = $file.Name; Reason = 'Already descriptive' })
-        $countSkipped++
-        $countDescriptive++
-        continue
-    }
 
     # Step 1: Read content.
     $content = Get-FileTextContent -File $file
@@ -619,6 +569,7 @@ foreach ($file in $files) {
         -Endpoint $AzureOpenAIEndpoint `
         -ApiKey $AzureOpenAIKey `
         -DeploymentName $DeploymentName `
+        -AlwaysSuggestNewName:$Force `
         -MaxPromptCharacters $MaxPromptCharacters
 
     if ($null -eq $proposed) {
@@ -691,15 +642,10 @@ Write-Output " Files scanned    : $($files.Count)"
 Write-Output " Files renamed    : $countRenamed"
 Write-Output " Files skipped    : $countSkipped"
 
-if ($countDescriptive -gt 0 -or $countUnchanged -gt 0) {
+if ($countUnchanged -gt 0) {
     Write-Output ''
     Write-Output ' Skip breakdown:'
-    if ($countDescriptive -gt 0) {
-        Write-Output "   - Already descriptive : $countDescriptive"
-    }
-    if ($countUnchanged -gt 0) {
-        Write-Output "   - Filename unchanged   : $countUnchanged"
-    }
+    Write-Output "   - Filename unchanged   : $countUnchanged"
 }
 
 if ($skippedFiles.Count -gt 0) {

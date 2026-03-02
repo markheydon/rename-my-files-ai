@@ -44,7 +44,7 @@ Write-Output ""
 $libFolder = Join-Path $PSScriptRoot 'lib'
 if (-not (Test-Path -LiteralPath $libFolder)) {
     New-Item -ItemType Directory -Path $libFolder -Force | Out-Null
-    Write-Output "✓ Created lib folder: $libFolder"
+    Write-Output "[OK] Created lib folder: $libFolder"
 }
 
 # Download .nupkg from NuGet.org using v2 API (package ID is "PdfPig", not "UglyToad.PdfPig").
@@ -59,7 +59,7 @@ New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 try {
     # Download .nupkg (which is just a zip file).
     Invoke-WebRequest -Uri $nupkgUrl -OutFile $nupkgFile -UseBasicParsing
-    Write-Output "✓ Downloaded package"
+    Write-Output "[OK] Downloaded package"
     
     # Extract .nupkg (rename to .zip and expand).
     $zipFile = Join-Path $tempDir "pdfpig.zip"
@@ -67,7 +67,7 @@ try {
     
     $extractPath = Join-Path $tempDir "extracted"
     Expand-Archive -Path $zipFile -DestinationPath $extractPath -Force
-    Write-Output "✓ Extracted package"
+    Write-Output "[OK] Extracted package"
     
     # Find the DLL for the appropriate framework (.NET 6.0 or .NET Standard 2.0).
     $dllPaths = @(
@@ -81,7 +81,7 @@ try {
         $candidatePath = Join-Path $extractPath $relativePath
         if (Test-Path -LiteralPath $candidatePath) {
             $dllSource = $candidatePath
-            Write-Output "✓ Found DLL: $relativePath"
+            Write-Output "[OK] Found DLL: $relativePath"
             break
         }
     }
@@ -108,11 +108,11 @@ try {
         $destination = Join-Path $libFolder $dll.Name
         try {
             Copy-Item -LiteralPath $dll.FullName -Destination $destination -Force -ErrorAction Stop
-            Write-Output "  ✓ Installed: $($dll.Name)"
+            Write-Output "  [OK] Installed: $($dll.Name)"
         }
         catch {
             if ($_.Exception.Message -match "because it is being used by another process") {
-                Write-Output "  → Skipped: $($dll.Name) (already in use - will use existing version)"
+                Write-Output "  [SKIP] $($dll.Name) (already in use - will use existing version)"
             }
             else {
                 throw
@@ -120,11 +120,11 @@ try {
         }
     }
     
-    Write-Output "✓ Installed $($dlls.Count) DLL(s) total"
+    Write-Output "[OK] Installed $($dlls.Count) DLL(s) total"
     
     Write-Output ""
     Write-Output "=========================================="
-    Write-Output "✓ Installation Complete"
+    Write-Output "[OK] Installation Complete"
     Write-Output "=========================================="
     Write-Output ""
     Write-Output "PDF text extraction is now enabled."
@@ -139,10 +139,10 @@ catch {
     Write-Error "Installation failed: $_"
     Write-Output ""
     Write-Output "Troubleshooting:"
-    Write-Output "  • Check your internet connection"
-    Write-Output "  • Try a different version: .\Install-Dependencies.ps1 -Version 0.1.12"
-    Write-Output "  • Check available versions: https://www.nuget.org/packages/PdfPig/"
-    Write-Output "  • Check NuGet.org status: https://status.nuget.org/"
+    Write-Output "  - Check your internet connection"
+    Write-Output "  - Try a different version: .\Install-Dependencies.ps1 -Version 0.1.12"
+    Write-Output "  - Check available versions: https://www.nuget.org/packages/PdfPig/"
+    Write-Output "  - Check NuGet.org status: https://status.nuget.org/"
     exit 1
 }
 finally {
