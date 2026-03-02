@@ -33,11 +33,20 @@ Create or update these, using the repository as the source of truth:
 ### Always-on repo context
 - `.github/copilot-instructions.md` (project-wide "rulebook": boundaries + commands).
 - `.github/instructions/*.instructions.md` (scoped rules; at least one for the primary language/stack).
+- `.github/skills/github-issue-management/SKILL.md` (GitHub Issue Management integration).
 - `plan/SCOPE.md` (authoritative scope + "must not have" list).
 - `plan/IMPLEMENTATION_PLAN.md` (incremental phases with small, testable tasks).
 - `plan/RUNBOOK.md` (how to build/test/run; honest about what's not decided yet).
 - `plan/DECISIONS/ADR-0001-*.md` (architecture "shape" decision).
 - `docs/` containing only user-facing documentation (README, guides, etc.).
+
+### GitHub Integration
+- Agents and prompts must:
+	- Search for existing GitHub Issues before starting work.
+	- Create Issues for new tasks, epics, or user stories.
+	- Update Issues with status, comments, and PR links.
+	- Close Issues when tasks are completed.
+	- Use labels (`epic`, `user-story`) and issue linking for hierarchy.
 
 ### Minimal agent team (default 4–5)
 Create these custom agents under `.github/agents/`:

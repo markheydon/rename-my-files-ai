@@ -11,12 +11,20 @@ Create/update:
 - `.github/instructions/*.instructions.md`
 - `.github/agents/*` (minimal team)
 - `.github/prompts/*` (plan/next-task/implement/review/docs)
-- `.github/skills/*` (consistency skills for planning and decision-making)
+- `.github/skills/github-issue-management/SKILL.md` (GitHub Issue Management integration)
 - `plan/SCOPE.md`
 - `plan/IMPLEMENTATION_PLAN.md`
 - `plan/RUNBOOK.md`
 - `plan/DECISIONS/ADR-0001-architecture.md`
 - `docs/` (user-facing documentation only: README, guides, etc.)
+
+GitHub Integration:
+- Agents and prompts must:
+	- Search for existing GitHub Issues before starting work.
+	- Create Issues for new tasks, epics, or user stories.
+	- Update Issues with status, comments, and PR links.
+	- Close Issues when tasks are completed.
+	- Use labels (`epic`, `user-story`) and issue linking for hierarchy.
 
 Rules:
 - Keep it minimal (start with 4 agents unless strongly justified).
