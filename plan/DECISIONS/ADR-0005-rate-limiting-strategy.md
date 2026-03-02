@@ -32,7 +32,8 @@ Azure OpenAI enforces two main limits:
 - Manual quota checks: Rejected in favour of automatic handling and clear documentation.
 
 ## References
-- Azure OpenAI documentation on rate limits and quotas
+- [Azure OpenAI rate limits and quotas](https://learn.microsoft.com/en-us/azure/ai-services/openai/quotas-limits)
+- [Azure OpenAI REST API reference](https://learn.microsoft.com/en-us/azure/ai-services/openai/reference)
 - Implementation in `scripts/Rename-MyFiles.ps1` (see error handling and throttle logic)
 
 ---
