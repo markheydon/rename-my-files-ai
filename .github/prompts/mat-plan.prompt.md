@@ -23,8 +23,8 @@ For GitHub Issue management conventions, follow `.github/skills/github-issue-man
 
 3. **Create task/story issues** for breakdown tasks from epics.
    - Title format: Clean, no prefixes
-   - Label (Issue Type): `story`, `bug`, or `spike` (pick one; see ./skills/github-issue-management/references/LABELS.md)
-   - Label (Change Type): `improvement`, `feature`, or `technical` (pick zero or one; see ./skills/github-issue-management/references/LABELS.md)
+   - Label (Issue Type): `story`, `bug`, or `spike` (pick one)
+   - Label (Change Type): `improvement`, `feature`, or `technical` (pick zero or one)
    - Label (Workflow Status): `dependency`, `feedback required`, `waiting for details` (as needed)
    - Label (Governance): `out-of-scope` (if intentionally deferred), `priority-high` (if high priority)
    - Assign to **Milestone:** corresponding phase (see instructions file)
@@ -41,7 +41,7 @@ For GitHub Issue management conventions, follow `.github/skills/github-issue-man
 
 ### Labels and Status
 
-Refer to [Label Reference](./skills/github-issue-management/references/LABELS.md) for complete usage guidelines:
+Refer to `.github/skills/github-issue-management/references/LABELS.md` for complete usage guidelines:
 - **Issue Type** (epic, story, bug, spike): exactly one per issue.
 - **Change Type** (improvement, feature, technical): zero or one per issue.
 - **Workflow Status** (dependency, feedback required, waiting for details): as needed.
