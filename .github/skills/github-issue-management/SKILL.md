@@ -1,7 +1,6 @@
 ---
 name: github-issue-management
 description: Manage GitHub Issues for project and product management workflows. Search for existing issues, create new issues for tasks/epics/stories, update status and comments, link related issues, and close completed work. Use for automating project tracking.
-license: MIT
 ---
 
 # GitHub Issue Management Skill
@@ -17,16 +16,17 @@ This skill provides universal GitHub Issue management conventions for AI-powered
 - Update issues with status, comments, and links to PRs.
 - Close issues when tasks are completed.
 - Use parent/child issue linking (GitHub's native feature) to connect tasks to epic parents.
-- Apply labels consistently using the [Label Reference](references/LABELS.md).
+- Apply labels consistently using the `.github/skills/github-issue-management/SKILL.md` skill.
+- Follow repository-specific conventions documented in `.github/instructions/github-issue-management.instructions.md`.
 
 ## Label Strategy
 
-Labels are organised into four categories. See [references/LABELS.md](references/LABELS.md) for complete definitions, colours, and usage matrix.
+Labels are organised into four categories. See `.github/skills/github-issue-management/references/LABELS.md` for complete definitions, colours, and usage matrix.
 
 ### Issue Type (Required)
 Apply **exactly one** to every issue:
 - `epic` — Epic issue; parent of child tasks.
-- `story` — User story; typically child of epic  .
+- `story` — User story; typically child of epic.
 - `bug` — Bug fix.
 - `spike` — Research or investigation task (time-boxed).
 
@@ -64,7 +64,7 @@ Apply for project management and prioritization:
 - Use clear, version-based names: `v1.0`, `v1.1`, `v2.0`.
 - Or phase-based names: `Phase 1: Foundation`, `Phase 2: Enhancement`.
 - Or time-based names: `2026 Q1`, `March Sprint`.
-- Repository-specific milestone names are defined in `.github/instructions/github-issue-management.md`.
+- See your repository's `.github/instructions/` files for repository-specific naming guidelines.
 
 **Best practices:**
 - Keep milestone count manageable (5-10 active at once).
@@ -149,7 +149,7 @@ Apply for project management and prioritization:
 
 ## Label Reference
 
-For complete label definitions, colours, usage guidelines, and the Label Usage Matrix, see [Label Reference](./references/LABELS.md).
+For complete label definitions, colours, usage guidelines, and the Label Usage Matrix, see `.github/skills/github-issue-management/references/LABELS.md`.
 
 Quick reference for label creation commands is also available in that file.
 
@@ -158,4 +158,4 @@ Quick reference for label creation commands is also available in that file.
 - Regularly review and update issues to reflect current status of tasks.
 - Close issues once merged/released.
 - Use parent linking to maintain epic-to-task visibility.
-- For repository-specific milestone names and epic mappings, see `.github/instructions/github-issue-management.md`.
+- For repository-specific milestone naming conventions, see `.github/instructions/github-issue-management.instructions.md`.
