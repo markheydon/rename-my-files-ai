@@ -189,9 +189,14 @@ This plan breaks work into small, testable tasks. Update it when the code change
 
 ## Phase 6 - Enhanced Content Extraction
 
-**Status:** ⏳ **Not Started** (Post-MVP Backlog)
+**Status:** 🔄 **In Progress**
 
-**Objective:** Replace placeholder extraction logic with real text extraction for PDF and Office documents, improving AI-generated filename quality.
+**Objective:** Complete post-MVP extraction improvements by adding image and Office document content extraction while preserving safe, per-file failure handling.
+
+### Completed Work in This Phase
+
+- [x] Phase 6a (PDF extraction) completed using PdfPig with graceful skip behaviour.
+- [x] Intelligent smart-skip logic completed for already-descriptive filenames.
 
 ### Why Post-MVP?
 
@@ -366,12 +371,12 @@ This plan breaks work into small, testable tasks. Update it when the code change
 **Rationale:** Users frequently scan documents (invoices, receipts, letters) as images and need them renamed. Images are likely the primary real-world use case after plain-text files. This phase brings image support previously considered out-of-scope into the active pipeline.
 
 #### Task: Research & Select Image Processing Method
-- [ ] Investigate image processing options:
+- [ ] Story: Compare image extraction options and select one approach.
   - **Azure Computer Vision (Read API):** Cloud service, provides OCR; costs per image; requires additional Azure SDK.
   - **Tesseract (CLI):** Free, open-source, cross-platform OCR; requires external tool installation and PATH setup.
   - **IronOCR (.NET library):** Commercial library, cross-platform; licensing restrictions.
   - **Azure OpenAI Vision:** Multimodal model (GPT-4V); send image pixels directly for filename proposals; may be cost-effective.
-- [ ] Evaluation criteria:
+- [ ] Story: Record decision criteria and recommendation in ADR.
   - Format coverage (.jpg, .jpeg, .png minimum; .gif, .bmp optional).
   - Cross-platform support (Windows, macOS, Linux).
   - Installation ease (NuGet preferred over external utilities).
@@ -383,24 +388,12 @@ This plan breaks work into small, testable tasks. Update it when the code change
   - Calculate cost implications for typical batch (e.g., 100 scanned documents).
 
 #### Task: Implement Image Processing
-- [ ] Modify `Get-FileTextContent` function in [scripts/Rename-MyFiles.ps1](scripts/Rename-MyFiles.ps1).
-  - [ ] Add support for `.jpg`, `.jpeg`, `.png` image formats.
-  - [ ] Extract text via chosen method (OCR library or vision API).
-  - [ ] Return extracted text up to 8000 characters (existing limit).
-  - [ ] Handle unsupported/corrupted/unreadable images by catching errors and skipping gracefully.
-  - [ ] Return $null only for truly unsupported formats.
-- [ ] Add optional prerequisite documentation (if library requires installation).
-  - [ ] Specify exact NuGet package/utility version and installation steps.
-  - [ ] Document installation for Windows, macOS, and Linux.
-- [ ] Test with realistic image samples:
-  - [ ] Scanned PDF-as-image (JPEG of invoice).
-  - [ ] Photo of receipt or letter.
-  - [ ] Handwritten image (test OCR limits).
-  - [ ] Corrupted/unreadable image.
-  - [ ] Verify error handling does not stop batch processing.
-- [ ] Update user-guide.md to document image support with caveats.
-  - [ ] Note limitations (handwriting, very low resolution, non-text content like diagrams).
-  - [ ] Clarify cost implications if using vision API.
+- [ ] Story: Add `.jpg`, `.jpeg`, `.png` support in `Get-FileTextContent`.
+- [ ] Story: Enforce 8000-character cap for extracted image text.
+- [ ] Story: Handle unreadable/corrupted images with skip-and-continue behaviour.
+- [ ] Story: Add optional dependency install instructions (only if required by chosen method).
+- [ ] Story: Validate with five-file mixed sample set (readable text, low quality, handwritten, corrupted, non-text image).
+- [ ] Story: Update user guide with image support limitations and cost notes.
 
 #### Acceptance Criteria
 - [ ] Script runs without errors when processing mixed batches (text + PDF + images).
@@ -410,15 +403,17 @@ This plan breaks work into small, testable tasks. Update it when the code change
 
 ### Phase 6c - Office Document Text Extraction
 
+**Status:** ⏳ **Not Started**
+
 **Priority:** Medium (frequently renamed, multiple formats)
 
 #### Task: Research & Select Office Extraction Method
-- [ ] Investigate Office document extraction options:
+- [ ] Story: Compare Office extraction options and shortlist preferred approach.
   - **DocumentFormat.OpenXml** (.NET library, Microsoft-supported, cross-platform via .NET Core/Framework).
   - **OpenXML SDK** (similar to above, official Microsoft library).
   - **LibreOffice CLI** (`soffice` command-line, external utility, cross-platform).
   - **Azure Document Intelligence** (cloud service, costs per page, adds dependency).
-- [ ] Evaluation criteria:
+- [ ] Story: Record evaluation against support, licensing, and operability criteria.
   - Format coverage (.docx, .xlsx, .pptx minimum; .doc, .xls, .ppt optional).
   - Cross-platform support (Windows, macOS, Linux).
   - Installation ease (NuGet preferred over external utilities).
@@ -427,24 +422,12 @@ This plan breaks work into small, testable tasks. Update it when the code change
 - [ ] Document recommendation and rationale in [DECISIONS/ADR-000X-office-extraction.md](DECISIONS/) (future ADR).
 
 #### Task: Implement Office Document Text Extraction
-- [ ] Modify `Get-FileTextContent` function in [scripts/Rename-MyFiles.ps1](scripts/Rename-MyFiles.ps1) (lines 104–107).
-  - Replace placeholder logic returning `[Office document: <filename>]` with real extraction.
-  - Support at minimum: `.docx`, `.xlsx`, `.pptx`.
-  - Extract up to 8000 characters from first sheet/slide (existing limit).
-  - Handle corrupted/password-protected/unsupported formats by catching errors and falling back to filename context.
-  - Return extracted text or placeholder, never throw.
-- [ ] Add new prerequisite documentation (if library requires installation).
-  - Specify exact NuGet package version or external utility version.
-  - Document installation steps for Windows, macOS, and Linux.
-- [ ] Test with realistic Office document samples:
-  - `.docx` file (modern Word format).
-  - `.xlsx` file with multiple sheets (extract from first sheet).
-  - `.pptx` file with multiple slides (extract from first slide).
-  - Password-protected `.docx` (fallback to context).
-  - Corrupted/malformed file (fallback to context).
-- [ ] Update user-guide.md to list Office document extraction under supported file types.
-  - Note format support (.docx, .xlsx, .pptx, etc.).
-  - Note limitations (password-protected, corrupted, etc.).
+- [ ] Story: Replace Office placeholder flow with real extraction for `.docx`, `.xlsx`, `.pptx`.
+- [ ] Story: Apply 8000-character cap and deterministic extraction scope (first sheet/slide where applicable).
+- [ ] Story: Gracefully skip password-protected/corrupt files without stopping batch processing.
+- [ ] Story: Add dependency installation instructions if chosen method requires setup.
+- [ ] Story: Validate with five-file Office sample set (standard, multi-sheet/multi-slide, protected, corrupted).
+- [ ] Story: Update user guide with supported formats and extraction limitations.
 
 ### Phase 7 - Validation & Release
 
@@ -452,19 +435,10 @@ This plan breaks work into small, testable tasks. Update it when the code change
 
 **Objective:** Comprehensive final testing and validation before any official release or public announcement.
 
-- [ ] Test cross-platform behaviour:
-  - Windows (native .NET on Windows or .NET Core).
-  - macOS (.NET Core / .NET 5+).
-  - Linux (.NET Core / .NET 5+).
-- [ ] Confirm error handling does not break batch processing:
-  - Run with mixed file types (plain text, PDF, Office, unsupported).
-  - Verify all files attempt rename; no exceptions bubble up.
-  - Verify summary accurate (renamed/skipped counts correct).
-- [ ] Run linting and validation:
-  - PSScriptAnalyzer: `Invoke-ScriptAnalyzer -Path .\scripts -Settings .\PSScriptAnalyzerSettings.psd1 -Recurse`
-  - Bicep build (if dependencies require Bicep changes): `az bicep build --file infra/main.bicep`
-- [ ] Update [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) to mark Phase 6 complete.
-- [ ] Update [README.md](README.md) **Current Limitations** section to reflect new extraction capabilities.
+- [ ] Story: Validate Windows, macOS, and Linux execution paths with the same mixed input set.
+- [ ] Story: Verify per-file failure isolation using malformed/unreadable samples.
+- [ ] Story: Run lint and infra validation gates (`Invoke-ScriptAnalyzer`, `az bicep build`).
+- [ ] Story: Confirm user-facing docs match implemented extraction behaviour before release.
 
 ## Future Enhancements (Out of Scope — Not Immediately Planned)
 
