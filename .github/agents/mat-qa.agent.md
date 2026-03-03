@@ -1,6 +1,7 @@
 ---
 name: MAT QA
 description: Quality gatekeeper for Rename My Files.
+tools: []
 ---
 
 ## Responsibilities

@@ -1,5 +1,7 @@
 ---
+name: PowerShell Implementation Instructions
 description: PowerShell implementation rules for Rename My Files.
+applyTo: "**/*.ps1,**/*.psm1"
 ---
 
 # PowerShell Rules

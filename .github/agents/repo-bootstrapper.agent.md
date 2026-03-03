@@ -46,7 +46,7 @@ Create or update these, using the repository as the source of truth:
 	- Create Issues for new tasks, epics, or user stories.
 	- Update Issues with status, comments, and PR links.
 	- Close Issues when tasks are completed.
-	- Use labels (`epic`, `user-story`) and issue linking for hierarchy.
+	- Use labels (`epic`, `story`) and issue linking for hierarchy.
 
 ### Minimal agent team (default 4–5)
 Create these custom agents under `.github/agents/`:

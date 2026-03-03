@@ -35,12 +35,14 @@ Documentation should:
 - Describe what the code **currently does**, not speculative or planned future features.
 - Be kept aligned with the actual codebase at all times.
 - Only include planning notes or implementation notes where they are clearly marked (e.g. a `# TODO:` comment) and tightly scoped.
+- **Use UK English spelling and terminology** (e.g. "organise", "behaviour", "colour", "optimise").
 
 Documentation must **not**:
 
 - Over-promise capabilities that are not yet implemented.
 - Add generic boilerplate that is not directly relevant to the current implementation.
 - Describe features outside the single purpose stated above.
+- Use US English spelling (e.g. "organize", "behavior", "color", "optimize").
 
 ---
 

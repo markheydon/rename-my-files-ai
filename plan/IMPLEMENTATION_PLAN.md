@@ -189,9 +189,14 @@ This plan breaks work into small, testable tasks. Update it when the code change
 
 ## Phase 6 - Enhanced Content Extraction
 
-**Status:** ⏳ **Not Started** (Post-MVP Backlog)
+**Status:** 🔄 **In Progress**
 
-**Objective:** Replace placeholder extraction logic with real text extraction for PDF and Office documents, improving AI-generated filename quality.
+**Objective:** Complete post-MVP extraction improvements by adding image and Office document content extraction while preserving safe, per-file failure handling.
+
+### Completed Work in This Phase
+
+- [x] Phase 6a (PDF extraction) completed using PdfPig with graceful skip behaviour.
+- [x] Intelligent smart-skip logic completed for already-descriptive filenames.
 
 ### Why Post-MVP?
 
@@ -361,90 +366,42 @@ This plan breaks work into small, testable tasks. Update it when the code change
 
 **Priority:** High (most common file type users scan and dump: scanned documents, receipts, photos)
 
+**GitHub Issue:** [#18](https://github.com/markheydon/rename-my-files-ai/issues/18) - Add image OCR support for .jpg, .png files
+
 **Objective:** Add support for image files (primarily JPEG, PNG) by using Optical Character Recognition (OCR) or vision-based AI to extract content and propose filenames.
 
-**Rationale:** Users frequently scan documents (invoices, receipts, letters) as images and need them renamed. Images are likely the primary real-world use case after plain-text files. This phase brings image support previously considered out-of-scope into the active pipeline.
+**Rationale:** Users frequently scan documents (invoices, receipts, letters) as images and need them renamed. Images are likely the primary real-world use case after plain-text files.
 
-#### Task: Research & Select Image Processing Method
-- [ ] Investigate image processing options:
-  - **Azure Computer Vision (Read API):** Cloud service, provides OCR; costs per image; requires additional Azure SDK.
-  - **Tesseract (CLI):** Free, open-source, cross-platform OCR; requires external tool installation and PATH setup.
-  - **IronOCR (.NET library):** Commercial library, cross-platform; licensing restrictions.
-  - **Azure OpenAI Vision:** Multimodal model (GPT-4V); send image pixels directly for filename proposals; may be cost-effective.
-- [ ] Evaluation criteria:
-  - Format coverage (.jpg, .jpeg, .png minimum; .gif, .bmp optional).
-  - Cross-platform support (Windows, macOS, Linux).
-  - Installation ease (NuGet preferred over external utilities).
-  - Licensing (open source or permissive, no commercial restrictions).
-  - Cost per image vs plain-text processing.
-  - Privacy implications (sending image pixels to third parties vs OCR locally).
-- [ ] Document recommendation and rationale in [DECISIONS/ADR-000X-image-processing.md](DECISIONS/) (future ADR).
-  - Compare OCR + existing filename prompt vs direct vision model approach.
-  - Calculate cost implications for typical batch (e.g., 100 scanned documents).
-
-#### Task: Implement Image Processing
-- [ ] Modify `Get-FileTextContent` function in [scripts/Rename-MyFiles.ps1](scripts/Rename-MyFiles.ps1).
-  - [ ] Add support for `.jpg`, `.jpeg`, `.png` image formats.
-  - [ ] Extract text via chosen method (OCR library or vision API).
-  - [ ] Return extracted text up to 8000 characters (existing limit).
-  - [ ] Handle unsupported/corrupted/unreadable images by catching errors and skipping gracefully.
-  - [ ] Return $null only for truly unsupported formats.
-- [ ] Add optional prerequisite documentation (if library requires installation).
-  - [ ] Specify exact NuGet package/utility version and installation steps.
-  - [ ] Document installation for Windows, macOS, and Linux.
-- [ ] Test with realistic image samples:
-  - [ ] Scanned PDF-as-image (JPEG of invoice).
-  - [ ] Photo of receipt or letter.
-  - [ ] Handwritten image (test OCR limits).
-  - [ ] Corrupted/unreadable image.
-  - [ ] Verify error handling does not stop batch processing.
-- [ ] Update user-guide.md to document image support with caveats.
-  - [ ] Note limitations (handwriting, very low resolution, non-text content like diagrams).
-  - [ ] Clarify cost implications if using vision API.
-
-#### Acceptance Criteria
-- [ ] Script runs without errors when processing mixed batches (text + PDF + images).
-- [ ] Images with readable text are processed; unreadable images are skipped with reason.
-- [ ] Summary report includes image processing results.
-- [ ] Documentation updated for end users.
+**Work Items:**
+- [ ] Complete story #18: Add image OCR support for .jpg, .png files
+  - Research and select OCR method (Azure AI Vision, Tesseract, OpenAI Vision, or alternatives)
+  - Document approach decision (ADR if complex choice)
+  - Implement extraction in `Get-FileTextContent` with 8000-char limit
+  - Handle unreadable/corrupted images gracefully
+  - Test with realistic samples (scanned docs, photos, corrupted files)
+  - Update documentation with prerequisites and limitations
 
 ### Phase 6c - Office Document Text Extraction
 
+**Status:** ⏳ **Not Started**
+
 **Priority:** Medium (frequently renamed, multiple formats)
 
-#### Task: Research & Select Office Extraction Method
-- [ ] Investigate Office document extraction options:
-  - **DocumentFormat.OpenXml** (.NET library, Microsoft-supported, cross-platform via .NET Core/Framework).
-  - **OpenXML SDK** (similar to above, official Microsoft library).
-  - **LibreOffice CLI** (`soffice` command-line, external utility, cross-platform).
-  - **Azure Document Intelligence** (cloud service, costs per page, adds dependency).
-- [ ] Evaluation criteria:
-  - Format coverage (.docx, .xlsx, .pptx minimum; .doc, .xls, .ppt optional).
-  - Cross-platform support (Windows, macOS, Linux).
-  - Installation ease (NuGet preferred over external utilities).
-  - Licensing (open source or permissive).
-  - Error handling (corrupted/password-protected documents handled gracefully).
-- [ ] Document recommendation and rationale in [DECISIONS/ADR-000X-office-extraction.md](DECISIONS/) (future ADR).
+**GitHub Issue:** [#19](https://github.com/markheydon/rename-my-files-ai/issues/19) - Add Office document text extraction (.docx, .xlsx, .pptx)
 
-#### Task: Implement Office Document Text Extraction
-- [ ] Modify `Get-FileTextContent` function in [scripts/Rename-MyFiles.ps1](scripts/Rename-MyFiles.ps1) (lines 104–107).
-  - Replace placeholder logic returning `[Office document: <filename>]` with real extraction.
-  - Support at minimum: `.docx`, `.xlsx`, `.pptx`.
-  - Extract up to 8000 characters from first sheet/slide (existing limit).
-  - Handle corrupted/password-protected/unsupported formats by catching errors and falling back to filename context.
-  - Return extracted text or placeholder, never throw.
-- [ ] Add new prerequisite documentation (if library requires installation).
-  - Specify exact NuGet package version or external utility version.
-  - Document installation steps for Windows, macOS, and Linux.
-- [ ] Test with realistic Office document samples:
-  - `.docx` file (modern Word format).
-  - `.xlsx` file with multiple sheets (extract from first sheet).
-  - `.pptx` file with multiple slides (extract from first slide).
-  - Password-protected `.docx` (fallback to context).
-  - Corrupted/malformed file (fallback to context).
-- [ ] Update user-guide.md to list Office document extraction under supported file types.
-  - Note format support (.docx, .xlsx, .pptx, etc.).
-  - Note limitations (password-protected, corrupted, etc.).
+**Objective:** Replace Office document placeholder extraction with real text extraction for Word, Excel, and PowerPoint files.
+
+**Rationale:** Users frequently need to rename Office documents with descriptive names based on content. Support for .docx, .xlsx, .pptx provides value for business document workflows.
+
+**Work Items:**
+- [ ] Complete story #19: Add Office document text extraction (.docx, .xlsx, .pptx)
+  - Research and select extraction method (Open XML SDK, LibreOffice CLI, or alternatives)
+  - Document approach decision (ADR if complex choice)
+  - Replace placeholder logic with real extraction in `Get-FileTextContent`
+  - Apply 8000-char limit and extract from first sheet/slide
+  - Handle password-protected/corrupted files gracefully
+  - Test with realistic Office file samples
+  - Update documentation with prerequisites and known limitations
 
 ### Phase 7 - Validation & Release
 
@@ -452,30 +409,12 @@ This plan breaks work into small, testable tasks. Update it when the code change
 
 **Objective:** Comprehensive final testing and validation before any official release or public announcement.
 
-- [ ] Test cross-platform behaviour:
-  - Windows (native .NET on Windows or .NET Core).
-  - macOS (.NET Core / .NET 5+).
-  - Linux (.NET Core / .NET 5+).
-- [ ] Confirm error handling does not break batch processing:
-  - Run with mixed file types (plain text, PDF, Office, unsupported).
-  - Verify all files attempt rename; no exceptions bubble up.
-  - Verify summary accurate (renamed/skipped counts correct).
-- [ ] Run linting and validation:
-  - PSScriptAnalyzer: `Invoke-ScriptAnalyzer -Path .\scripts -Settings .\PSScriptAnalyzerSettings.psd1 -Recurse`
-  - Bicep build (if dependencies require Bicep changes): `az bicep build --file infra/main.bicep`
-- [ ] Update [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) to mark Phase 6 complete.
-- [ ] Update [README.md](README.md) **Current Limitations** section to reflect new extraction capabilities.
-
-## Future Enhancements (Out of Scope — Not Immediately Planned)
-
-These features are documented as potential future work beyond Phase 7 validation:
-
-- **Recursive subfolder processing** — Current design processes only top-level files to keep behaviour straightforward. Could be added as a flag (e.g., `-Recurse`) in a future version.
-- **Batch capacity optimisation** — Scale to 10,000+ files by increasing Azure OpenAI TPM (tokens per minute) quota. Requires quota adjustments and batching logic.
-- **Alternative AI backends** — Currently Azure OpenAI only. Other providers (OpenAI API, Anthropic Claude, etc.) could be added, but would require new integration code and testing.
-- **GUI or web interface** — Current CLI approach is lightweight and cross-platform. A GUI could improve UX for non-technical users but adds complexity and platform-specific dependencies.
-- **File content modification** — Explicitly out of scope. This tool **only renames**; it never edits file contents.
-- **Advanced image understanding** — Handwriting recognition, diagram understanding, multi-modal vision at scale (beyond basic OCR).
+**Work Items:**
+- [ ] Cross-platform validation (Windows, macOS, Linux) with mixed file types
+- [ ] Per-file failure isolation testing (malformed/unreadable samples)
+- [ ] Linting and infrastructure validation (`Invoke-ScriptAnalyzer`, `az bicep build`)
+- [ ] Documentation accuracy review (ensure docs match implemented behaviour)
+- [ ] Final release preparation and packaging
 
 ## Assumptions & Design Decisions
 
@@ -502,31 +441,27 @@ These features are documented as potential future work beyond Phase 7 validation
 - **Optional dependencies:** Image and Office extraction libraries are optional. Users can install them (e.g., `Install-Dependencies.ps1`) if needed; files are skipped with clear guidance if dependencies are missing.
 - **Image support priority:** Images (Phase 6b) are prioritised before Office documents (Phase 6c) because scanned documents are a primary motivation for this tool.
 
-## Phase 8 - Future Considerations: Expanded Features (Out of Scope)
+## Phase 8 - Future Enhancements (Out of Scope)
 
 **Status:** ⏳ **Not Started**
 
-**Objective:** Evaluate longer-term enhancements beyond the current Phase 6 focus.
+**Objective:** Deferred features for potential future consideration after Phase 7 release.
 
-### 8a - Deeper Image Understanding (Future Research)
+**Rationale:** These features are intentionally out of scope to allow focus on core Phase 6 capabilities (PDF, images, Office documents) and Phase 7 validation/release.
 
-Once basic OCR-based image support is in place (Phase 6b), consider:
+### Deferred Stories
 
-- [ ] Advanced OCR for handwriting and complex layouts.
-- [ ] Multi-modal vision models for direct image-to-filename proposals (e.g., GPT-4 Vision at scale).
-- [ ] Diagram and table recognition for technical documents.
+**GitHub Issue:** [#4](https://github.com/markheydon/rename-my-files-ai/issues/4) - Add recursive subfolder processing support  
+**Work:** `-Recurse` flag to process subfolders and nested directories while preserving folder hierarchy.
 
-### 8b - Recursive Folder Processing
+**GitHub Issue:** [#5](https://github.com/markheydon/rename-my-files-ai/issues/5) - Optimise batch processing for large file sets  
+**Work:** Scale to 10,000+ files with parallel processing, rate-limit awareness, and resume capability for interrupted batches.
 
-Currently out of scope. Future enhancement could add:
+### Other Potential Enhancements (No Issues Created)
 
-- [ ] `-Recurse` flag to process subfolders and nested directories.
-- [ ] Preservation of folder hierarchy in renamed files (optional prefixing or flattening).
+- **Advanced image understanding:** Handwriting recognition, diagram/table recognition, multi-modal vision at scale
+- **Alternative AI backends:** OpenAI API, Anthropic Claude, or other providers beyond Azure OpenAI
+- **GUI or web interface:** Visual interface for non-technical users (adds platform-specific complexity)
+- **Automated test suite:** Comprehensive testing harness beyond current manual validation
 
-### 8c - Batch Optimisation
-
-- [ ] Scale to 10,000+ files by optimising Azure OpenAI quota and batching logic.
-- [ ] Parallel processing (with rate-limit awareness) to reduce total runtime.
-- [ ] Resume capability for interrupted batches.
-
-**Note:** These features are intentionally deferred to allow focus on core Phase 6 capabilities (PDF, images, Office documents) and Phase 7 validation.
+**Note:** File content modification remains **permanently out of scope** - this tool only renames files, never edits their contents.
