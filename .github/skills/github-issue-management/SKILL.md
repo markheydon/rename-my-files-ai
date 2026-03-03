@@ -113,7 +113,7 @@ Apply for project management and prioritisation:
 - Prefix with phase/sprint: ❌ `Phase 2 — Add authentication`.
 - Use vague titles: ❌ `Fix stuff`, ❌ `Work on Phase 6`.
 
-**Rationale:** Labels and milestones handle categorization; keep titles clean and readable.
+**Rationale:** Labels and milestones handle categorisation; keep titles clean and readable.
 
 ## Status Tracking
 
