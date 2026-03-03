@@ -132,34 +132,6 @@ When finished, remove Azure resources:
 .\scripts\Remove-RenameMyFilesResources.ps1 -SubscriptionId "<your-subscription-id>"
 ```
 
-## User docs
-
-- End-user documentation: [docs/index.md](docs/index.md)
-- Step-by-step usage: [docs/user-guide.md](docs/user-guide.md)
-- Cost details and estimates: [docs/user-guide.md#cost](docs/user-guide.md#cost)
-
-## Technical references
-
-- Architecture decision: [plan/DECISIONS/ADR-0001-architecture.md](plan/DECISIONS/ADR-0001-architecture.md)
-- Azure CLI deployment decision: [plan/DECISIONS/ADR-0002-azure-cli-over-az-module.md](plan/DECISIONS/ADR-0002-azure-cli-over-az-module.md)
-- Deployment type and pricing rationale: [plan/DECISIONS/ADR-0003-globalstandard-deployment-type.md](plan/DECISIONS/ADR-0003-globalstandard-deployment-type.md)
-- Soft-delete restore behaviour: [plan/DECISIONS/ADR-0004-restore-soft-deleted-resources.md](plan/DECISIONS/ADR-0004-restore-soft-deleted-resources.md)
-- Operational runbook: [plan/RUNBOOK.md](plan/RUNBOOK.md)
-
-## Developer checks
-
-Validate Bicep:
-
-```bash
-az bicep build --file infra/main.bicep
-```
-
-Lint PowerShell:
-
-```powershell
-Invoke-ScriptAnalyzer -Path .\scripts -Settings .\PSScriptAnalyzerSettings.psd1 -Recurse
-```
-
 ## Security and privacy
 
 - Send only the minimum required file content to Azure OpenAI.

@@ -57,4 +57,4 @@ See the [User Guide](user-guide.md#cost) for more detail.
 ## Source & Contributions
 
 - [View on GitHub](https://github.com/markheydon/rename-my-files-ai)
-- Licensed under the [MIT License](https://github.com/markheydon/rename-my-files-ai/blob/main/LICENSE)
+- Licensed under the [MIT Licence](https://github.com/markheydon/rename-my-files-ai/blob/main/LICENSE)
