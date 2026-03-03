@@ -58,4 +58,4 @@ If relevant to the change:
 - No file content is modified.
 - Per-file error handling is present.
 - PowerShell linting passes with no errors.
-- Documentation reflects current behavior only.
+- Documentation reflects current behaviour only.
