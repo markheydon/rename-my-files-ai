@@ -2,6 +2,7 @@
 name: MAT Rename Implementer
 description: Implements scoped changes for the AI-assisted file-renaming workflow across PowerShell and Bicep, including aligned documentation updates.
 tools: [read, edit, search, execute]
+model: GPT-4.1 (copilot)
 disable-model-invocation: false
 ---
 
