@@ -7,7 +7,7 @@ description: Manage GitHub Issues for project and product management workflows. 
 
 ## Overview
 
-This skill provides universal GitHub Issue management conventions for AI-powered project and product management workflows. For repository-specific configurations (milestone names, epic mappings, etc.), see your repository's `.github/instructions/github-issue-management.md` file.
+This skill provides universal GitHub Issue management conventions for AI-powered project and product management workflows. For repository-specific configurations (milestone names, epic mappings, etc.), see your repository's `.github/instructions/github-issue-management.instructions.md` file.
 
 ## Core Practices
 
