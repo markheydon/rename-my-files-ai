@@ -38,12 +38,6 @@ Use these instructions when implementing or updating PowerShell code that suppor
 - Never hardcode secrets; use environment variables or secure parameter passing.
 - Handle errors per-file so one failure does not stop the batch.
 
-## Security
-
-- Never hardcode secrets; use environment variables or parameters.
-- Send only minimum necessary content to Azure AI.
-- Do not add new external services unless required for file reading or Azure AI.
-
 ## Validation Checklist
 
 Run before committing:
