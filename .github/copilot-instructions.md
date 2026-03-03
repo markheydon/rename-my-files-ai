@@ -48,13 +48,9 @@ Documentation must **not**:
 
 ## Code Quality Rules
 
-- Use **approved PowerShell verbs** for all functions and script names (e.g. `Get-`, `Set-`, `Invoke-`, `Remove-`, `Deploy-`).
-- Use `[CmdletBinding()]` on advanced functions.
-- Include comment-based help (`<# .SYNOPSIS ... #>`) on all scripts and public functions.
-- Use parameter validation attributes (`[ValidateNotNullOrEmpty()]`, `[ValidateScript()]`, etc.).
+- **PowerShell code** must follow `.github/instructions/powershell.instructions.md`.
 - Handle errors gracefully — a single bad file must never stop the entire batch.
 - Keep Azure AI interaction separated into its own function(s) for testability.
-- **Pass PSScriptAnalyzer with no errors** — run `Invoke-ScriptAnalyzer -Path .\scripts -Settings .\PSScriptAnalyzerSettings.psd1 -Recurse` before committing.
 
 ---
 

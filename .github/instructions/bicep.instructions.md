@@ -1,18 +1,19 @@
 ---
-name: azure-bicep
-description: Implement Azure Bicep infrastructure for the AI-based file renaming workflow. Use when deploying or updating Bicep templates for Azure resources required by the rename script's AI integration. Covers secure parameterization, avoiding hardcoded secrets, resource configuration for file renaming operations, and validation.
+name: Bicep Implementation Instructions
+description: Bicep implementation rules for Rename My Files.
+applyTo: "**/*.bicep"
 ---
 
-# Azure AI Infrastructure (Bicep) Skill
+# Bicep Implementation
 
 ## Purpose
 
-Use this skill when implementing or updating Azure Bicep for infrastructure that directly supports AI-based filename generation in this repository.
+Use these instructions when implementing or updating Azure Bicep templates for infrastructure that directly supports AI-based filename generation in this repository.
 
 ## In Scope
 
 - Bicep for Azure resources required by the rename workflow's AI integration.
-- Parameters/outputs needed by PowerShell automation to call Azure AI.
+- Parameters and outputs needed by PowerShell automation to call Azure AI.
 - Secure configuration patterns that avoid hardcoded secrets.
 
 ## Out of Scope
@@ -26,20 +27,22 @@ Use this skill when implementing or updating Azure Bicep for infrastructure that
 - Follow current Azure Bicep best practices.
 - Keep templates focused and minimal for the rename workflow.
 - Do not hardcode API keys, secrets, or subscription IDs.
-- Use secure parameterization and environment-based configuration where applicable.
+- Use secure parameterisation and environment-based configuration where applicable.
 - Keep documentation aligned with what templates currently deploy.
 
-## Validation
+## Validation Checklist
 
 Run before committing:
 
-- `az bicep build --file <path-to-main.bicep>`
+```bash
+az bicep build --file infra/main.bicep
+```
 
 If multiple entry files exist, build each relevant entry file changed by the PR.
 
 ## Definition of Done
 
 - Bicep changes directly support AI-based file renaming.
-- Templates compile successfully.
+- Templates compile successfully (`az bicep build` exits with no errors).
 - No secrets are hardcoded.
-- Documentation accurately reflects deployed resources and current behavior.
+- Documentation accurately reflects deployed resources and current behaviour.

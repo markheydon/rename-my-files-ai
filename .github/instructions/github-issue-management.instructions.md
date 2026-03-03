@@ -1,7 +1,7 @@
 ---
 name: GitHub Issue Management Instructions
 description: Repository-specific GitHub Issue management conventions for the rename-my-files project. Defines HOW to create and manage issues, not WHAT work is planned (see plan/IMPLEMENTATION_PLAN.md for planning content).
-applyTo: "plan/*.md"
+applyTo: "**"
 ---
 
 # GitHub Issue Management Instructions for rename-my-files
@@ -251,6 +251,26 @@ Apply labels according to the universal guidance in `.github/skills/github-issue
 
 Use **only** official labels defined in `.github/skills/github-issue-management/references/LABELS.md`. Remove any non-standard labels immediately.
 
+### Official Label List
+
+The only permitted labels are:
+
+- **Issue Type:** `epic`, `story`, `bug`, `spike`
+- **Change Type:** `improvement`, `feature`, `technical`
+- **Workflow Status:** `dependency`, `feedback required`, `waiting for details`
+- **Governance:** `out-of-scope`, `priority-high`, `not-started`
+
+### Label Cleanup Policy
+
+Remove any label **not** in the list above, including:
+
+- Phase-specific labels: `phase-6`, `phase-6a`, `phase-6b`, etc.
+- Priority variants: `priority-medium`, `priority-low`
+- Domain-specific labels: `image-processing`, `office-documents`, `validation`, `release`
+- Any other custom label not in the official list
+
+Use milestones for phase organisation instead of phase labels.
+
 ## Prerequisites for Automation
 
 **GitHub CLI Setup Required**
@@ -291,7 +311,7 @@ Non-epic issues in **active (current phase) milestones** should be added to your
 
 ### AI Agent Prompts
 
-- **mat-plan**: Reads `plan/IMPLEMENTATION_PLAN.md`, creates/updates GitHub Issues (epics and tasks), assigns milestones, applies labels
+- **mat-plan**: Reads `plan/IMPLEMENTATION_PLAN.md`, creates/updates GitHub Issues (epics and stories), assigns milestones, applies labels. **Constraint: only create epics and stories during planning — no bugs, spikes, or standalone task issues. Do not create separate issues for "Documentation" or "Testing"; these belong as checklist items inside story acceptance criteria.**
 - **mat-next-task**: Selects smallest next task from open issues, considering milestone priorities and dependencies
 
 ### GitHub CLI Project Board Integration
@@ -333,3 +353,13 @@ gh project item-add 6 --owner markheydon --repo rename-my-files-ai --issue 123
 - **Milestones = Phases:** Use milestones for phase organisation instead of phase-specific labels.
 - **Minimal labels:** Apply *ONLY* official labels as defined in the SKILL instructions; remove any non-standard labels immediately.
 - **Regular sync:** Update GitHub Issues after any `IMPLEMENTATION_PLAN.md` changes to maintain alignment.
+
+## Periodic Management Sweep
+
+Periodically review all open issues for consistency:
+
+- Remove any non-standard labels immediately.
+- Confirm every issue is assigned to the correct milestone.
+- Confirm child stories are linked to their parent epic (manually in GitHub UI if needed).
+- Add any qualifying issues (story/bug/spike in active milestone, not `out-of-scope`) to the project board if missing.
+- Report to the user any required actions that cannot be performed automatically (e.g. parent/child linking) rather than skipping them.
